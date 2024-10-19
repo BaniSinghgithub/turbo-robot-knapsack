@@ -1,0 +1,137 @@
+// to understand this algorithm, lets take a problem
+
+/* Problem statement -There is bag (knapsack) that can sustain (carry) maximum W weight ,
+                      and a list of objects,with its weight and price, is given. 
+                      So, find out the maximum price of objects that can be carried in the bag without exceeding the maximum weight.
+                      
+*/
+
+/* Approach- Let's there are n objects with their price and weight. We will try to collect those objects, having high price but focussing on the weight limit of bag.
+              therefore, for each object, we have two choices, either to take the object or not to take object and look for other objects.
+
+              if weight of an object is less than the max weight, then we have two choice, either to collect or continue for other objects
+              if weight of an object is more than the max weight, then we can't collect that weight, so continue with other objects
+
+              let's take an example 
+                   if weight capacity of bag=50.
+                   weight = {15, 30, 25, 40, 10 }       // weight of 5 objects
+                   price =  {80, 24, 85, 35, 120 }        // price of 5 objects respectively
+
+              
+              I can collect objects in different ways
+                  weight                  price
+                  15, 30                  80+24=104
+                  15, 25, 10              80+85+120=285
+                  30, 10                  24+120=144
+                  25,10                   85+120=205
+                  40, 10                  35+120=155
+
+          I can see that if I collect { 15, 25, 10 } then maximum price can be targeted.
+          when i collected weight-15, then 35 more weight can be collected furthur,
+          similarly when i collected weight-25,then 10 more weight can be collected.
+*/
+
+
+Code :-
+
+
+
+Method 1 : simple recursive function
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+int solve( int W, vector<int>weight, vector<int>price, int n ){
+  
+   if (n == 0 || W == 0) {       // base case - when no object is remained or weight to be collected further is 0 , then return
+        return 0;
+    }
+                                   // if object's weight is greater than remained weight required, then continue with other objects
+    if (weight[n - 1] > W)          
+    {
+        return solve(W, weight, price, n - 1);
+    }   
+                                      // if object's weight is less than the remained weight required, then two choices-- either to take object or not to take
+    else{                                
+        return max(                            
+            price[n - 1] + knapsackRec(W - weight[n - 1], weight, price, n - 1),
+            solve(W, weight, price, n - 1)
+        );
+    }
+
+    return 0;
+}
+
+int main(){
+  int W = 50;                              // Maximum weight capacity of the knapsack
+  vector <int> weight = {10, 20, 30};       // Weights of the items
+  vector<int> price = {60, 100, 120};       // Values of the items
+  
+  int n = weight.size(); 
+
+  int ans = solve(W, weight, price, n);
+
+  cout<<"The amximum price of the objects that can be carried out in the given bag is : " << ans <<".";
+  return 0;
+}
+
+
+
+
+Method 2: Memoization method ( D.P. ) -- to reduce time complexity
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+vector<vector<int>> dp;                   // 2D DP array to store the results of subproblems
+
+int solveMemo(int W, vector<int>& weight, vector<int>& price, int n) {
+                                   
+    if (n == 0 || W == 0) {                   // Base case: no items left or no remaining capacity
+        return 0;
+    }
+
+    
+    if (dp[n][W] != -1) {             // If the subproblem has already been solved, return the stored result
+        return dp[n][W];
+    }
+
+                                      // If the item's weight is more than the remaining capacity, skip this item
+    if (weight[n - 1] > W) {
+        dp[n][W] = solveMemo(W, weight, price, n - 1);
+    } 
+    else {
+                                        // Either include the item or exclude it, whichever gives the maximum value
+        dp[n][W] = max(
+            price[n - 1] + solveMemo(W - weight[n - 1], weight, price, n - 1),
+            solveMemo(W, weight, price, n - 1)
+        );
+    }
+    
+    return dp[n][W];                    // Return the stored result
+}
+
+int main() {
+    int W = 50;                              // Maximum weight capacity of the bag
+    vector<int> weight = {10, 20, 30};       // Weights of the objects
+    vector<int> price = {60, 100, 120};      // Values of the objects
+
+    int n = weight.size();                   // Number of objects
+
+    
+    dp.resize(n + 1, vector<int>(W + 1, -1));        // Initialize the dp array with -1 (indicating uncomputed subproblems)
+    
+    int ans = solveMemo(W, weight, price, n);          // Solve the problem using memoization
+
+    cout << "The maximum price of the objects that can be carried out in the given bag is: " << ans << "." << endl;
+    
+    return 0;
+}
+
+
+
+
+
+
